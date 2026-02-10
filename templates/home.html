@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Flood Monitoring - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Animation on Scroll -->
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      background: url('{{ url_for("static", filename="images/banner.jpg") }}') center/cover fixed no-repeat;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(0,0,0,0.7);
+    }
+    .navbar-brand, .nav-link {
+      color: #fff !important;
+    }
+    .nav-link:hover {
+      color: #0d6efd !important;
+    }
+
+    /* Hero Banner */
+    .hero {
+      text-align: center;
+      padding: 120px 15px;
+      background: rgba(0,0,0,0.4);
+      animation: fadeIn 2s ease-in-out;
+    }
+    .hero h1 {
+      font-size: 3.2rem;
+      font-weight: bold;
+    }
+    .hero p {
+      font-size: 1.3rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    /* About & Video Section */
+    .about-section {
+      background: rgba(0,0,0,0.5);
+      padding: 60px 20px;
+    }
+    .about-section h2 {
+      margin-bottom: 30px;
+    }
+
+    /* Quick Features */
+    .features {
+      padding: 60px 0;
+      background: rgba(255,255,255,0.1);
+    }
+    .feature-box {
+      background: rgba(128,128,128,0.15);  /* transparent gray */
+      border-radius: 15px;
+      padding: 20px;
+      color: #0d0d0d;
+      transition: transform 0.3s, background 0.3s;
+}
+
+    .feature-box:hover {
+      background: rgba(128,128,128,0.25);
+      transform: translateY(-5px);
+}
+
+
+    /* Students */
+    .students {
+      padding: 60px 0;
+    }
+    .student-card {
+      background: rgba(128,128,128,0.15);  /* transparent gray */
+      border-radius: 10px;
+      padding: 20px;
+      color: #0f0f0f;
+      transition: transform 0.3s;
+}
+
+    .student-card:hover {
+      transform: scale(1.05);
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Footer */
+    footer {
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 20px 0;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">🌊 Flood Monitor</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home') }}">Monitoring</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('plots') }}">plots</a>
+        </li>
+         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('heatmaps') }}">heatmaps</a>
+        </li>
+         
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Banner -->
+<section class="hero">
+  <h1 data-aos="fade-up">AI-Based Real-Time Flood Monitoring</h1>
+  <p data-aos="fade-up" data-aos-delay="200">
+    Predict and monitor flood risks using live weather data and advanced AI models.
+  </p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary btn-lg mt-4" data-aos="zoom-in" data-aos-delay="400">
+    Start Monitoring
+  </a>
+</section>
+
+<!-- About + Video -->
+<section class="about-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0" data-aos="fade-right">
+        <h2>About Flood Monitoring</h2>
+        <p>
+          Our system collects real-time weather data and uses a machine learning model to
+          accurately predict the risk of flooding. It provides timely alerts, ensuring
+          safety and preparedness for communities in flood-prone areas.
+        </p>
+        <p>
+          Stay informed with our intuitive dashboard that offers live risk scores,
+          detailed environmental parameters, and historical trends.
+        </p>
+      </div>
+      <div class="col-md-6" data-aos="fade-left">
+        <div class="ratio ratio-16x9">
+          <!-- Replace with any relevant YouTube video link -->
+          <iframe src="https://www.youtube.com/embed/hPzmI0lg00Y?start=5" title="Flood Monitoring Video" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Monitoring Features -->
+<section class="features">
+  <div class="container text-center">
+    <h2 class="mb-5" data-aos="fade-up" style="color:black;">Quick Monitoring Highlights</h2>
+    <div class="row g-4">
+      <div class="col-md-3" data-aos="zoom-in">
+        <div class="feature-box">
+          <h5>Live Risk Score</h5>
+          <p>Instant updates of flood probability with AI-based calculations.</p>
+        </div>
+      </div>
+      <div class="col-md-3" data-aos="zoom-in" data-aos-delay="100">
+        <div class="feature-box">
+          <h5>Real-Time Weather</h5>
+          <p>Fetches live weather data for accurate predictions.</p>
+        </div>
+      </div>
+      <div class="col-md-3" data-aos="zoom-in" data-aos-delay="200">
+        <div class="feature-box">
+          <h5>Interactive Dashboard</h5>
+          <p>Visual graphs and charts for easy understanding of risk levels.</p>
+        </div>
+      </div>
+      <div class="col-md-3" data-aos="zoom-in" data-aos-delay="300">
+        <div class="feature-box">
+          <h5>Smart Alerts</h5>
+          <p>Quick notifications to take timely precautions against flooding.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Students Section -->
+<section class="students">
+  <div class="container text-center">
+    <h2 class="mb-5" data-aos="fade-up" style="color:black;">Our Team</h2>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-3 col-6" data-aos="flip-left">
+        <div class="student-card">
+          <h5>VANDAN GOWDA R</h5>
+          <p>Reg No:20231CAI3009</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6" data-aos="flip-left" data-aos-delay="100">
+        <div class="student-card">
+          <h5>VAISHNAVI SALUNKE</h5>
+          <p>Reg No: 20221CAI0118</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6" data-aos="flip-left" data-aos-delay="200">
+        <div class="student-card">
+          <h5>ANUSHA H G</h5>
+          <p>Reg No: 20221CAI0112</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="text-center">
+  &copy; 2025 AI Flood Monitoring Project. All rights reserved.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 1000,
+    once: true
+  });
+</script>
+</body>
+</html>

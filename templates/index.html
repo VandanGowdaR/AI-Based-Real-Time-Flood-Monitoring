@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Flood Monitoring</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ===== Background ===== */
+    body {
+      background: url('{{ url_for("static", filename="images/banner.jpg") }}') center/cover fixed no-repeat;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      background: rgba(0,0,0,0.7);
+    }
+    .navbar-brand, .nav-link {
+      color: #fff !important;
+    }
+    .nav-link:hover {
+      color: #0d6efd !important;
+    }
+
+    /* ===== Cards ===== */
+    #risk-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+        background: #ffffffcc;
+    }
+    #risk-card:hover { transform: translateY(-3px); }
+
+    .feature-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        padding: 15px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background-color: #ffffffcc;
+    }
+    .feature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 15px 0;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#">🌊 Flood Monitor</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+         <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home') }}">Monitoring</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('plots') }}">plots</a>
+        </li>
+         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('heatmaps') }}">heatmaps</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-5 mb-4">
+<h2 class="text-center mb-4 text-shadow" style="color:black;">AI-Based Real-Time Flood Monitoring</h2>
+
+  <!-- Input -->
+  <div class="card p-3 mb-4 bg-light bg-opacity-75">
+    <div class="row g-3">
+      <div class="col-md-10">
+        <input id="city" type="text" class="form-control" placeholder="Enter City Name" value="Bangalore">
+      </div>
+      <div class="col-md-2">
+        <button id="startBtn" onclick="startMonitoring()" class="btn btn-primary w-100">Start Monitoring</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Graph -->
+  <div class="card mb-3 bg-light bg-opacity-75">
+    <div class="card-body" style="height: 300px;">
+      <h5 class="card-title">Flood Risk Monitoring (Live)</h5>
+      <canvas id="riskChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Risk Level -->
+  <div id="risk-card" class="card p-3 mb-3">
+    <h5 class="card-title">Flood Risk Level: -</h5>
+    <p class="card-text">Score: -</p>
+  </div>
+
+  <!-- Features -->
+  <div id="features-container" class="row g-3"></div>
+
+  <button id="stopBtn" onclick="stopMonitoring()" class="btn btn-secondary w-100 mt-3">Stop Monitoring</button>
+</div>
+
+<!-- Footer -->
+<footer class="text-center">
+  &copy; 2025 AI Flood Monitoring. All rights reserved.
+</footer>
+
+<script>
+let riskChart;
+let intervalId = null;
+let hasSpokenSafe = false;   // NEW → Speak SAFE only once
+
+// Chart setup (single dataset)
+function setupChart() {
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    riskChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Flood Risk Score',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)', // default green
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: {
+                x: { title: { display: true, text: 'Time' } },
+                y: { title: { display: true, text: 'Flood Risk Score' }, min: 0, max: 1 }
+            }
+        }
+    });
+}
+
+// update chart and change dataset color based on current status
+function updateChartAndColor(score, unsafe) {
+    const now = new Date().toLocaleTimeString();
+    const ds = riskChart.data.datasets[0];
+
+    if (unsafe) {
+        ds.borderColor = 'rgba(255, 99, 132, 1)';
+        ds.backgroundColor = 'rgba(255, 99, 132, 0.15)';
+    } else {
+        ds.borderColor = 'rgba(75, 192, 192, 1)';
+        ds.backgroundColor = 'rgba(75, 192, 192, 0.15)';
+    }
+
+    riskChart.data.labels.push(now);
+    riskChart.data.datasets[0].data.push(score);
+
+    if (riskChart.data.labels.length > 20) {
+        riskChart.data.labels.shift();
+        riskChart.data.datasets[0].data.shift();
+    }
+    riskChart.update();
+}
+
+// display SAFE/UNSAFE and small alert message below it
+function showPredictionStatus(score) {
+    const unsafeThreshold = 0.80; // 80%
+    const unsafe = score >= unsafeThreshold;
+
+    const riskCard = document.getElementById("risk-card");
+    const statusText = unsafe ? 'UNSAFE' : 'SAFE';
+    const color = unsafe ? 'red' : 'green';
+
+    riskCard.innerHTML = `
+        <h5 class="card-title">Prediction: <span style="color:${color}; font-weight:700;">${statusText}</span></h5>
+        <p class="card-text">Score: ${(score*100).toFixed(2)}%</p>
+        <div id="alert-msg" class="mt-2"></div>
+    `;
+
+    const alertDiv = document.getElementById("alert-msg");
+
+    if (unsafe) {
+        alertDiv.innerHTML = `
+            <div class="alert alert-danger py-2" role="alert" style="margin-bottom:0;">
+                <strong>NOT SAFE:</strong> My prediction indicates a potential flood risk in this area within the next 15 days. Please take the necessary precautions immediately to ensure safety..
+            </div>
+        `;
+
+        // RESET safe spoken lock so SAFE can happen again later
+        hasSpokenSafe = false;
+
+        // Speak UNSAFE every 30s
+        speakAlert('My prediction indicates a potential flood risk in this area within the next 15 days. Please take the necessary precautions immediately to ensure safety.');
+
+    } else {
+        alertDiv.innerHTML = `
+            <div class="alert alert-success py-2" role="alert" style="margin-bottom:0;">
+                <strong>SAFE:</strong> Based on my analysis, there are no signs of flooding in this area. Stay safe, and enjoy peace of mind.
+            </div>
+        `;
+
+        // SAFE message → Speak ONLY ONCE
+        if (!hasSpokenSafe) {
+            speakAlert('Based on my analysis, there are no signs of flooding in this area. Stay safe, and enjoy peace of mind.');
+            hasSpokenSafe = true;   // Lock it
+        }
+    }
+
+    return unsafe;
+}
+
+// speak a message using Web Speech API (if available)
+function speakAlert(message) {
+    if (!("speechSynthesis" in window)) return;
+    try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(message);
+        u.rate = 1;
+        window.speechSynthesis.speak(u);
+    } catch (e) {
+        console.warn("Speech synthesis failed:", e);
+    }
+}
+
+// fetch prediction and update UI
+function updateMonitoring(city) {
+    fetch(`/predict?city=${encodeURIComponent(city)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("risk-card").innerHTML = `<p class="text-danger">${data.error}</p>`;
+                document.getElementById("features-container").innerHTML = "";
+                return;
+            }
+
+            const score = Number(data.score);
+            if (Number.isNaN(score)) return;
+
+            const unsafe = showPredictionStatus(score);
+
+            displayFeatures(data.features || {});
+
+            if (!riskChart) setupChart();
+            updateChartAndColor(score, unsafe);
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            document.getElementById("risk-card").innerHTML = `<p class="text-danger">Failed to fetch data</p>`;
+            document.getElementById("features-container").innerHTML = "";
+        });
+}
+
+// helper - same as before
+function displayFeatures(features) {
+    const container = document.getElementById("features-container");
+    container.innerHTML = "";
+    if (!features) return;
+    Object.entries(features).forEach(([key, value]) => {
+        const col = document.createElement("div");
+        col.className = "col-md-3";
+        col.innerHTML = `
+            <div class="feature-card text-center">
+                <h6>${key}</h6>
+                <p>${value}</p>
+            </div>
+        `;
+        container.appendChild(col);
+    });
+}
+
+// start/stop monitoring (30s interval)
+function startMonitoring() {
+    const city = document.getElementById("city").value.trim();
+    if (!city) { alert("Enter a city name!"); return; }
+    document.getElementById("startBtn").disabled = true;
+
+    if (intervalId) clearInterval(intervalId);
+    if (riskChart) { riskChart.destroy(); riskChart = null; }
+
+    setupChart();
+    updateMonitoring(city);
+
+    intervalId = setInterval(() => updateMonitoring(city), 30000);
+}
+
+function stopMonitoring() {
+    if (intervalId) clearInterval(intervalId);
+    intervalId = null;
+    document.getElementById("startBtn").disabled = false;
+
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+</script>
+</body>
+</html>
